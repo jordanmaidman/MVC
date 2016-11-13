@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Lab 3 - Laravel</title>
+<script
+src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+<script>
+// this is the base url to which all your requests will be made
+var baseURL = "index.php";
+$(document).ready(function(){
+    $.get(baseURL+"?get=session", function(data) {
+		$('#session').html('session =' + data)
+	});
+
+	
+    $('#table').click(function(event) { // generates the table
+        // change the url parameters based on your API here
+        // Using an JQuery AJAX GET request to get data form the server 
+        $.get(baseURL+'?get=jazz&limit=10', function(data) {
+            generateTable(data, $('#container'));
+        });
+    });
+
+    $('#form').click(function(event) { 
+        // creating an empty form
+        generateForm(null, $('#container'));
+    });
+
+    // Handle table click event for delete
+    $('#container').on('click', '.delete', function(event) {
+        var id = $(this).val();
+        // change the url parameters based on your API here
+        // remember to create delete functionality on the server side (Model and Controller)
+        // Using an JQuery AJAX GET request to get data form the server 
+        $.get(baseURL+"?get=delete&id="+id, function(data) {
+            //Generate table again after delete
+            //change the url based on your API parameters here
+            // Using an JQuery AJAX GET request to get data form the server 
+            $.get(baseURL+'?get=jazz&limit=10', function(data) {
+                generateTable(data, $('#container'));
+            });
+        });
+    });
+
+    // Handle form submit event for both upvale & create
+    // if the ID_FIELD is present the server would upvale the database otherwise the server would create a record in the database
+    $('#container').on('submit', '#my-form', function(event) {
+        event.preventDefault();
+        submitForm(baseURL, $(this));
+    });
+    
+    // Handle table click event for edit
+    // generates form with prefilled values
+    $('#container').on('click', '.edit', function(event) {
+        // getting id to make the AJAX request
+        var id = $(this).val();
+        // change the url parameters based on your API here
+        // Using an JQuery AJAX GET request to get data form the server 
+        $.get(baseURL+'?get=jazz&id='+id, function(data) {
+            generateForm(data, $('#container'));
+        });
+    });
+
+    // function to generate table
+    function generateTable(data, target) {
+        clearContainer(target);
+        //Change the table according to your data
+        var tableHtml = '<table><thead><tr><th>id</th><th>year</th><th>artist</th><th>album</th><th>Delete</th><th>Edit</th></tr></thead>';
+        $.each(data, function(index, dat) {
+            tableHtml += '<tr><td>'+dat.id+'</td><td>'+dat.year+'</td><td>'+dat.artist+'</td><td>'+dat.album+'</td><td><button class="delete" value="'+dat.id+'">Delete</button></td><td><button class="edit" value="'+dat.id+'">Edit</button></td></tr>';
+        });
+        tableHtml += '</table>';
+        $(target).append(tableHtml);
+    }
+    
+    // function to generate form
+    function generateForm(data, target){
+        clearContainer(target);
+        //Change form according to your fields
+        $(target).append('<form id="my-form"></form>');
+        var innerForm = '<input type="hidden" name="id" id="id"/>'+'<input type="text" name="year" id="year" />'+ '<input type="text" name="artist" id="artist" />'+ '<input type="text" name="album" id="album" />'+ '<input type="submit"/>';
+        $('#my-form').append(innerForm);
+        //Change values according to your data
+        if(data != null){
+            $.each(data, function(index, dat) { 
+                $('#id').val(dat.id);
+                $('#year').val(dat.year); 
+                $('#artist').val(dat.artist); 
+                $('#album').val(dat.album);
+            });
+        }
+    }
+    
+    function submitForm(url, form){
+        $.post(url, form.serialize(), function(data) {
+            showNotification(data, $('#notification'));
+        });
+    }
+    
+    function showNotification(data, target){
+        clearContainer(target);
+        target.append('<p>'+data+'</p>');
+    }
+    
+    function clearContainer(container){
+        container.html('');
+    }
+});
+
+</script>
+</head>
+<body>
+<div id = 'session'> </div>
+<!-- Other HTML content -->
+<div id="notification"></div>
+<button id="table">Table</button><button id="form">Form</button>
+<!-- Notifications shown here -->
+</div>
+<div id="container">
+<!-- Main Container for dynamic content -->
+</div>
+<!-- Other HTML content -->
+</body>
+</html>
